@@ -5,7 +5,7 @@
  */
 typedef unsigned int i_float;
 
-#define sign(i_float) ((i_float >> 23) & 1)
+#define sign(i_float) ((i_float >> 31) & 1)
 #define characteristic(i_float) ((i_float >> 23) & 0xFF)
 #define fraction(i_float) (i_float & 0x7FFFFF)
 
