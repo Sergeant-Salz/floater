@@ -64,17 +64,18 @@ i_float f_add_demo(i_float num1, i_float num2){
 
     /* Jetzt können wir die Mantrissen, die jetzt den selben Exponenten haben, addieren.
     Dabei müssen wir auf mehrere Dinge achten:
-        - Wenn eine oder beide Zahlen negativ sind, müssen wir entsprechend subtrahieren
+        - Wenn eine oder beide Zahlen negativ sind, müssen wir entsprechend die mantrisse negieren
         - Wenn das Ergebnis aus den 23 Mantissen bits overflowt, müssen wir einen rechtsshift
           durchführen und die Mantisse um eins erhöhen*/
 
     /* Zuerst speichern wir die jeweiligen Vorzeichen */
     int s1 = num1 & (1 << 31);
     int s2 = num2 & (1 << 31);
-    print_i_float(b1);
+
     int b_sum = (s1 ? -b1 : b1) + (s2 ? -b2 : b2);
     print_i_float((s1 ? -b1 : b1));
     print_i_float((s2 ? -b2 : b2));
+    print_i_float(b_sum);
 
     /* Jetzt checken wir ob das Ergebnis negativ ist. In diesem Fall wandeln wir es in eine positive Zahl um, und merken uns das Vorzeichen */
     int s_sum = 0;
@@ -82,15 +83,20 @@ i_float f_add_demo(i_float num1, i_float num2){
         s_sum = 1;
         b_sum = -b_sum;
     }
+    printf("After swapping sing\n");
+    print_i_float(b_sum);
 
     /* Check auf overflow. Der maximale overflow kann 3 (11) betragen, da die mantrissen selber
     ja immer kleiner als 2 sind, somit müssen wir maximal um 1 nach rechts schieben */
 
-    /* Check auf overflow */
-    if(b_sum & (1 << 24)) {
+    /* Check auf overflow. Wie bei Addition von Zweierkompliment zahlen üblich,
+    muss nur geprüft werden wenn die Vorzeichen untschiedlich sind*/
+    if(s1 != s2  && b_sum & (1 << 24)) {
         b_sum = b_sum >> 1;
         e_sum ++;
     }
+    printf("After overflow check\n");
+    print_i_float(b_sum);
 
     /* Jetzt müssen wir sicherstellen dass die neue Mantrisse wieder eine führende 1 hat, d.h.
     wir führen so lange linksshifts durch, bis eine 1 an der 24. Position steht. 
@@ -100,10 +106,15 @@ i_float f_add_demo(i_float num1, i_float num2){
 
     while(!(b_sum & (1 << 23))) {
         b_sum = b_sum << 1;
+        e_sum--;
     }
+    printf("After normalisation\n");
+    print_i_float(b_sum);
+
     /* Daraufhin entfernen wir die führende 1 und erhalten so die fertige Mantisse*/
     b_sum = b_sum ^ (1 << 23);
 
+    printf("Sign only, exponent only, and sum\n");
     print_i_float((s_sum << 31));
     print_i_float((e_sum << 23));
     print_i_float(b_sum);
@@ -118,8 +129,8 @@ i_float f_add_demo(i_float num1, i_float num2){
 
 int main(int argc, char** argv){
     // Should be 3,5
-    i_float val1 = 0b11000000010000000000000000000000;
-    i_float val2 = 0b01000000010100000000000000000000;
+    i_float val1 = 0b10111111110000000000000000000000;
+    i_float val2 = 0b00111111101000000000000000000000;
     i_float sum = f_add_demo(val1, val2);
     printf("Values are\n");
     print_i_float_sci( val1);
