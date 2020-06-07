@@ -39,92 +39,105 @@ i_float f_add_demo(i_float num1, i_float num2){
     durchführen */
     int b1 = num1 & 0x7FFFFF;
     int b2 = num2 & 0x7FFFFF;
-    /* Extrahiere die exponenten durch rechtsshift um 23 und bitwise AND mit
-    Hex 0xFF = 0b1111 */
-    int e1 = (num1 >> 23) & 0xFF;
-    int e2 = (num2 >> 23) & 0xFF;
-
 
     /* Wir ergänzen wieder die weggelassene 1 vor den Mantrissen */
     b1 = b1 + (1 << 23);
     b2 = b2 + (1 << 23);
 
-    /* Exponenten vergleichen um die Werte auf den selben Exponenten zu bringen 
-    Außerdem merken wir uns den größeren Exponenten */
-    int e_sum;
+    /* Extrahiere die exponenten durch rechtsshift um 23 und bitwise AND mit
+    Hex 0xFF = 0b1111 */
+    int e1 = (num1 >> 23) & 0xFF;
+    int e2 = (num2 >> 23) & 0xFF;
 
-    /* Wenn e2 > e1 muss b1 um die Differenz geschoben werden */
-    if(e2 > e1){
-        e_sum = e2;
-        b1 = b1 >> (e2 - e1);
-    } else { /* Ansonsten muss b2 um die entsprechende differenz geschoben werden */
-        e_sum = e1;
-        b2 = b2 >> (e1 - e2);
+    /* Einer der Werte ist NaN */
+    if( (!e1 && b1) || (!e2 && b2)){
+        return !0;
     }
 
 
-    /* Jetzt geht es an die eigentliche Addition:
-    Zuerst speichern wir die jeweiligen Vorzeichen */
-
+    /* Wie merken uns das Vorzeichen (Nicht nach rechts gesiftet!)*/ 
     int s1 = num1 & (1 << 31);
     int s2 = num2 & (1 << 31);
 
-    /*Fall I: Beide Summanden haben das selbe Vorzeichen
-    - Normale Addition. Für das Vorzeichen wählen, wenn beide negativ, dann s_sum 1, sonst 0.
-    Fall II: Einer der beiden Sumanden ist negativ
-    - Wir bilden wir das 2'er Komliment und addieren dann. 
-      Dann checken wir ob das Ergebnis positiv oder negativ ist uns setzen s_sum entsprechend */
-    int b_sum, s_sum;
+    /* Wir schieben die Zahl mit dem kleineren Exponenten so, dass die beiden Exponenten gleich groß sind */
+    while(e1 != e2){
+        if(e1 < e2){
+            e1++;
+            b1 = b1 >> 1;
+        } else {
+            e2++;
+            b2 = b2 >> 1;
+        }
+    }
 
-    if(s1 == s2){
+    printf("Nach dem exponenten auslgeichen:\n");
+    print_i_float(b1);
+    print_i_float(b2);
+
+    int b_sum;
+    int e_sum = e1;
+    int s_sum;
+    
+    /* Wenn beide Zahlen das selbe Vorzeichen haben*/
+    if(s1 == s2) {
+        /* Das Vorzeichen des Ergebnisses ist dann das selbe wie die beiden summanden */
+        s_sum = s1;
+
+        /* Wie können nun die Mantrissen einfach addieren */
         b_sum = b1 + b2;
-        s_sum = s1 ? 1 : 0;
-        /* Check auf overflow. Der maximale overflow kann 3 (11) betragen, da die mantrissen selber
-        ja immer kleiner als 2 sind, somit müssen wir maximal um 1 nach rechts schieben.
-        Wie bei Addition von Zweierkompliment zahlen üblich muss nur geprüft werden,
-        ob es einen overflow gibt wenn die Vorzeichen untschiedlich gleich*/
-        if(b_sum & (1 << 24)) {
+
+        /* Prüfen ob das Ergebnis in das 24.bit übergelaufen ist */
+        if(b_sum &  (1 << 24)){
             b_sum = b_sum >> 1;
-            e_sum ++;
+            e_sum++;
         }
+
+        /* Wir normalisieren das Ergebnis wieder */
+        while(!(b_sum & (1 << 23))){
+            e_sum--;
+            b_sum = b_sum << 1;
+        }
+
+        /* Und entfernen dann die führende 1 */
+        b_sum = b_sum ^ (1<<23);
     } else {
-        int b_sum = (s1 ? -b1 : b1) + (s2 ? -b2 : b2);
-        print_i_float((s1 ? -b1 : b1));
-        print_i_float((s2 ? -b2 : b2));
-        print_i_float(b_sum);
-        /* Jetzt checken wir ob das Ergebnis negativ ist. In diesem Fall wandeln wir es in eine positive Zahl um, und merken uns das Vorzeichen */
-        s_sum = 0;
-        if(b_sum < 0){
-            s_sum = 1;
-            b_sum = -b_sum;
+        /* Wenn die beiden unterschiedliche Vorzeichen haben bedeutet dass, dass wir eigentlich eine Subtraktion durchführen */
+        if(s1){
+            b_sum = b2 - b1;
+        } else {
+            b_sum = b1- b2;
         }
+
+        /* Nun können wir an dem 23.bit erkennen ob das ergebnis positiv oder negativ ist */
+        if(b_sum < 0){
+            /* Negativ, also müssen wir das 2.er kompliment bilden, potentielle overflow bits clrearen,
+             und das Ergebnisvorziechen auf 1 setzen */
+            b_sum = -b_sum;
+            b_sum = (b_sum & 0x7FFFFF);
+            s_sum = (1 << 31);
+        } else {
+            /* Das Ergebnis ist positiv, also müssen wir nichts tuen außer potentielle overflow bits zu clearen */
+            b_sum = (b_sum & 0x7FFFFF);
+            s_sum = 0;
+        }
+
+         /* Wir normalisieren das Ergebnis wieder */
+        while(!(b_sum & (1 << 23))){
+            e_sum--;
+            b_sum = b_sum << 1;
+        }
+
+        /* Und entfernen dann die führende 1 */
+        b_sum = b_sum ^ (1<<23);
     }
-
-
-    /* Jetzt müssen wir sicherstellen dass die neue Mantrisse wieder eine führende 1 hat, d.h.
-    wir führen so lange linksshifts durch, bis eine 1 an der 24. Position steht. 
-    Dabei ist der Sonderfall b_sum = 0 zu beachten. Hier würden wir sonst in eine Endlosschleife geraten. Nach dem
-    IEEE FPS setzen wir hierfür den Wert E = M = 0 */
-    if(!b_sum){ return 0; }
-
-    while(!(b_sum & (1 << 23))) {
-        b_sum = b_sum << 1;
-        e_sum--;
-    }
-
-    /* Daraufhin entfernen wir die führende 1 und erhalten so die fertige Mantisse*/
-    b_sum = b_sum ^ (1 << 23);
-
-    /* Jetzt müssen wir nur das Ergebnis rekonstruieren */
-    i_float sum = (s_sum << 31) | (e_sum << 23) | b_sum;
+    
+    int sum = s_sum | (e_sum << 23) | b_sum;
     print_i_float(sum);
-
     return sum;
 }
 
 
 int main(int argc, char** argv){
-    // Should be 3,5
     i_float val1 = 0b00111110101100101000000000000000; //0,3486328125
     i_float val2 = 0b10111110111100001000000000000000; //-0,4697265625
     i_float val3 = 0b10111111011100011000000000000000; //-0,943359375
