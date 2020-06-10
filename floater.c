@@ -190,29 +190,3 @@ i_float f_add(i_float num1, i_float num2){
     print_i_float(sum);
     return sum;
 }
-
-
-int main(int argc, char** argv){
-    i_float val1 = 0b00111110101100101000000000000000; //0,3486328125
-    i_float val2 = 0b10111110111100001000000000000000; //-0,4697265625
-    i_float val3 = 0b10111111011100011000000000000000; //-0,943359375
-    i_float val4 = 0b00111111011101011100000000000000; //0.9599609375
-    i_float val5 = 0b00111111100000000000000000000000; //1.0
-    i_float val6 = 0b00111111111111111111111111111111; //1.99999988079
-
-    printf("\n val2 * val3\n");
-    print_i_float(f_mul(val2, val3));
-    printf("\n val1 * val6\n");
-    print_i_float(f_mul(val1, val6));
-
-    printf("\n val5 / val6\n");
-    print_i_float(f_div(val5, val6));
-    printf("\n Val2 / val1\n");
-    print_i_float(f_div(val2, val1));
-    
-
-
-
-
-    return 0;
-}

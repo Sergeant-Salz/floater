@@ -1,10 +1,8 @@
 #include <stdio.h>
-/*
- * Calculate the integral of a given function function from start to end.
- * The area is divided into a given number of steps > 0.
- **/
-float integrate(float (*function)(float), float start, float end, int steps){
-    float stepSize = (end-start) / steps;
+#include "integration.h"
+#include "floater.c"
+
+float integrate(float (*function)(float), float start, float stepSize, int steps){
     float sum = 0;
 
     for(int step = 0; step < steps; step++){
@@ -19,8 +17,9 @@ float myFunc(float x){
 }
 
 int main(int argc, char** argv){
-    printf("Result is:%f\n", integrate(myFunc, 0, 5, 1000));
-    for(int i = 0; i < 100000; i++){
+    printf("Result is:%f\n", integrate(myFunc, 0, 0.005, 1000));
+    f_sub(0,0);
+    for(int i = 0; i < ITERATION_COUNT; i++){
         integrate(myFunc, 0, 5, 1000);
     }
 }
