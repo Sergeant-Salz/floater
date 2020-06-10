@@ -1,11 +1,12 @@
 #include "floater.h"
 #include <stdio.h>
 
-i_float f_add(i_float num1, i_float num2){
-    return 0;
-}
+#define DEBUG_PRINT 1
 
 void print_i_float(i_float val){
+    if(!DEBUG_PRINT){
+        return;
+    }
     i_float valCopy = val;
     for(int i = 0; i < 32; i++){
         if(i == 1 || i == 9){ printf(" ");}
@@ -16,6 +17,9 @@ void print_i_float(i_float val){
 }
 
 void print_i_float_sci(i_float val){
+    if(!DEBUG_PRINT){
+        return;
+    }
     if(sign(val)){
         printf("-");
     }
@@ -31,10 +35,73 @@ void print_i_float_sci(i_float val){
     printf("%fe%d ", mantisse, characteristic(val) - 127);
 } 
 
+/*
+ * Multipy two floating point values 
+ */
+i_float f_mul(i_float num1, i_float num2){
+
+    /* Wie merken uns das Vorzeichen (Nicht nach rechts gesiftet!)*/ 
+    int s1 = num1 & (1 << 31);
+    int s2 = num2 & (1 << 31);
+
+    /* Extrahiere die Bruchanteile der beiden Zahlen indem wir ein bitwises AND mit Hex 0x7FFFFF = 23x 1 in binär
+    durchführen */
+    int b1 = num1 & 0x7FFFFF;
+    int b2 = num2 & 0x7FFFFF;
+
+    /* Wir ergänzen wieder die weggelassene 1 vor den Mantrissen */
+    b1 = b1 + (1 << 23);
+    b2 = b2 + (1 << 23);
+
+    /* Extrahiere die exponenten durch rechtsshift um 23 und bitwise AND mit
+    Hex 0xFF = 0b1111 */
+    int e1 = (num1 >> 23) & 0xFF;
+    int e2 = (num2 >> 23) & 0xFF;
+
+    /* Neues Vorzeichen einfach durch XOR bestimmen */
+    int s_sum = s1 ^ s2;
+
+
+    /* Bevor wir multipizieren können müssen wir die beiden Mantissen so weit nach rechts schieben, dass
+    es keinen Überlauf geben kann. Dies hat natürlich potentiell große Präzisionsverluste zur Folge. */
+    b1 = b1 >> 8;
+    b2 = b2 >> 8;
+
+    int b_sum = b1 * b2;
+    
+    /* Addiere die beiden Exponenten, bedenke den bias abzuziehen da er sonst doppelt enthalten ist */
+    int e_sum = e1 + e2 - 127;
+    
+    /*Dieses Ergebnis passt in allen fällen in 32 bit. Da wir zwei Zahlen mutiplizeren die eine 1 vor dem Komma stehen haben,
+    können wir sicher sein dass an der 30. (oder 31. falls overflow) stelle eine 1 stehen muss. 
+    Daher können wir das Ergebnis um eine feste menge nach rechts schieben um es wieder zu normalisieren */
+    if(b_sum & (1 << 31)){
+        /*Bedenke das hierbei führende 1-en vor alle s geschoben wird. Diese entfernen wir später wenn wir auch die führende 1 entfernen
+        Außerdem schieben wir in diesem fall 1 mal mehr als sonst, daher müssen wir den exponenten entsprechend erhöhen*/
+        b_sum = b_sum >> 8;
+        e_sum++;
+    } else {
+        b_sum = b_sum >> 7;
+    }
+
+    /* Nicht vergessen die führende(n) 1 wieder zu entfernen */
+    b_sum = b_sum & 0x7FFFFF;
+
+    /* Ergebnis wieder zusammensetzen */
+    int sum = s_sum | (e_sum << 23) | b_sum;
+    return sum;
+}
+
+/* Substract the secound argument from the first one*/
+i_float f_sub(i_float num1, i_float num2){
+    /*Einfach das Vorzeichen der zweiten Zahl tauschen, und dann eine Addition durchführen*/
+    return f_add(num1, num2 ^ (1 << 31));
+}
+
 /**
  * Add number one and two, returning a float.
  */
-i_float f_add_demo(i_float num1, i_float num2){
+i_float f_add(i_float num1, i_float num2){
     /* Extrahiere die Bruchanteile der beiden Zahlen indem wir ein bitwises AND mit Hex 0x7FFFFF = 23x 1 in binär
     durchführen */
     int b1 = num1 & 0x7FFFFF;
@@ -70,10 +137,6 @@ i_float f_add_demo(i_float num1, i_float num2){
         }
     }
 
-    printf("Nach dem exponenten auslgeichen:\n");
-    print_i_float(b1);
-    print_i_float(b2);
-
     int b_sum;
     int e_sum = e1;
     int s_sum;
@@ -92,14 +155,6 @@ i_float f_add_demo(i_float num1, i_float num2){
             e_sum++;
         }
 
-        /* Wir normalisieren das Ergebnis wieder */
-        while(!(b_sum & (1 << 23))){
-            e_sum--;
-            b_sum = b_sum << 1;
-        }
-
-        /* Und entfernen dann die führende 1 */
-        b_sum = b_sum ^ (1<<23);
     } else {
         /* Wenn die beiden unterschiedliche Vorzeichen haben bedeutet dass, dass wir eigentlich eine Subtraktion durchführen */
         if(s1){
@@ -120,16 +175,16 @@ i_float f_add_demo(i_float num1, i_float num2){
             b_sum = (b_sum & 0x7FFFFF);
             s_sum = 0;
         }
-
-         /* Wir normalisieren das Ergebnis wieder */
-        while(!(b_sum & (1 << 23))){
-            e_sum--;
-            b_sum = b_sum << 1;
-        }
-
-        /* Und entfernen dann die führende 1 */
-        b_sum = b_sum ^ (1<<23);
     }
+
+    /* Wir normalisieren das Ergebnis wieder */
+    while(!(b_sum & (1 << 23))){
+        e_sum--;
+        b_sum = b_sum << 1;
+    }
+
+    /* Und entfernen dann die führende 1 */
+    b_sum = b_sum ^ (1<<23);
     
     int sum = s_sum | (e_sum << 23) | b_sum;
     print_i_float(sum);
@@ -142,21 +197,22 @@ int main(int argc, char** argv){
     i_float val2 = 0b10111110111100001000000000000000; //-0,4697265625
     i_float val3 = 0b10111111011100011000000000000000; //-0,943359375
     i_float val4 = 0b00111111011101011100000000000000; //0.9599609375
+    i_float val5 = 0b00111111100000000000000000000000; //1.0
+    i_float val6 = 0b00111111111111111111111111111111; //1.99999988079
 
-    printf("\nval1 + val4 = ");
-    i_float result1 = f_add_demo(val1, val4);
-    print_i_float_sci(result1);
-    printf("\n\n");
+    printf("\n val2 * val3\n");
+    print_i_float(f_mul(val2, val3));
+    printf("\n val1 * val6\n");
+    print_i_float(f_mul(val1, val6));
 
-    printf("\nval2 + val4: ");
-    i_float result2 = f_add_demo(val2, val4);
-    print_i_float_sci(result2);
-    printf("\n\n");
+    printf("\n val5 / val6\n");
+    print_i_float(f_div(val5, val6));
+    printf("\n Val2 / val1\n");
+    print_i_float(f_div(val2, val1));
+    
 
-    printf("\nval3 + val4: ");
-    i_float result3 = f_add_demo(val3, val4);
-    print_i_float_sci(result3);
-    printf("\n\n");
+
+
 
     return 0;
 }
