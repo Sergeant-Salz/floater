@@ -16,8 +16,8 @@ float myFunc(float x){
 }
 
 int main(int argc, char** argv){
-    printf("Result is:%f\n", integrate(myFunc, 0, 0.005, 1000));
+    printf("Result is:%f\n", integrate(myFunc, 1, 0.005, 1000));
     for(int i = 0; i < ITERATION_COUNT; i++){
-        integrate(myFunc, 0, 5, 1000);
+        integrate(myFunc, 1, 0.005, 1000);
     }
 }
