@@ -5,6 +5,7 @@ float integrate(float (*function)(float), float start, float stepSize, int steps
     float sum = 0;
 
     for(int step = 0; step < steps; step++){
+        if(DEBUG){printf("%f\n",sum);}
         sum += (function(start + step * stepSize) + function(start + (step + 1) * stepSize)) / 2;
     }
 
@@ -12,12 +13,13 @@ float integrate(float (*function)(float), float start, float stepSize, int steps
 }
 
 float myFunc(float x){
-    return 2.2345f * x*x - x*x*x + 57*x;
+    return 2.2345*x*x - 57*x;
 }
 
 int main(int argc, char** argv){
-    printf("Result is:%f\n", integrate(myFunc, 1, 0.005, 1000));
+    printf("Function at point 1 is:%f\n", myFunc(1));
+    printf("Result is:%f\n", integrate(myFunc, 1, 0.005, STEPS));
     for(int i = 0; i < ITERATION_COUNT; i++){
-        integrate(myFunc, 1, 0.005, 1000);
+        integrate(myFunc, 1, 0.005, STEPS);
     }
 }
