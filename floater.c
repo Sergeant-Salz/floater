@@ -49,14 +49,19 @@ i_float f_mul(i_float num1, i_float num2){
     int b1 = num1 & 0x7FFFFF;
     int b2 = num2 & 0x7FFFFF;
 
-    /* Wir ergänzen wieder die weggelassene 1 vor den Mantrissen */
-    b1 = b1 + (1 << 23);
-    b2 = b2 + (1 << 23);
-
     /* Extrahiere die exponenten durch rechtsshift um 23 und bitwise AND mit
     Hex 0xFF = 0b1111 */
     int e1 = (num1 >> 23) & 0xFF;
     int e2 = (num2 >> 23) & 0xFF;
+
+    /* Überprüfe ob eine der beiden Zahlen null ist (+0/-0) */
+    if(!b1 && !e1 || !b2 && !e2){
+        return 0;
+    }
+
+    /* Wir ergänzen wieder die weggelassene 1 vor den Mantrissen */
+    b1 = b1 + (1 << 23);
+    b2 = b2 + (1 << 23);
 
     /* Neues Vorzeichen einfach durch XOR bestimmen */
     int s_sum = s1 ^ s2;
