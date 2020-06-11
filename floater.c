@@ -173,13 +173,13 @@ i_float f_add(i_float num1, i_float num2){
         /* Nun können wir an dem 23.bit erkennen ob das ergebnis positiv oder negativ ist */
         if(b_sum < 0){
             /* Negativ, also müssen wir das 2.er kompliment bilden, potentielle overflow bits clrearen,
-             und das Ergebnisvorziechen auf 1 setzen */
+             und das Ergebnisvorzeichen auf 1 setzen */
             b_sum = -b_sum;
-            b_sum = (b_sum & 0x7FFFFF);
+            b_sum = (b_sum & 0xFFFFFF);
             s_sum = (1 << 31);
         } else {
             /* Das Ergebnis ist positiv, also müssen wir nichts tuen außer potentielle overflow bits zu clearen */
-            b_sum = (b_sum & 0x7FFFFF);
+            b_sum = (b_sum & 0xFFFFFF);
             s_sum = 0;
         }
     }
