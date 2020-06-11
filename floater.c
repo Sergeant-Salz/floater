@@ -108,11 +108,6 @@ i_float f_add(i_float num1, i_float num2){
     int b2 = num2 & 0x7FFFFF;
 
 
-
-    /* Wir ergänzen wieder die weggelassene 1 vor den Mantrissen */
-    b1 = b1 + (1 << 23);
-    b2 = b2 + (1 << 23);
-
     /* Extrahiere die exponenten durch rechtsshift um 23 und bitwise AND mit
     Hex 0xFF = 0b1111 */
     int e1 = (num1 >> 23) & 0xFF;
@@ -128,6 +123,10 @@ i_float f_add(i_float num1, i_float num2){
     } else if (!b2 && !e2){
         return num1;
     }
+
+    /* Wir ergänzen wieder die weggelassene 1 vor den Mantrissen */
+    b1 = b1 + (1 << 23);
+    b2 = b2 + (1 << 23);
 
 
     /* Wie merken uns das Vorzeichen (Nicht nach rechts gesiftet!)*/ 
@@ -195,6 +194,5 @@ i_float f_add(i_float num1, i_float num2){
     b_sum = b_sum ^ (1<<23);
     
     int sum = s_sum | (e_sum << 23) | b_sum;
-    print_i_float(sum);
     return sum;
 }
