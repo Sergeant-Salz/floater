@@ -107,6 +107,8 @@ i_float f_add(i_float num1, i_float num2){
     int b1 = num1 & 0x7FFFFF;
     int b2 = num2 & 0x7FFFFF;
 
+
+
     /* Wir ergänzen wieder die weggelassene 1 vor den Mantrissen */
     b1 = b1 + (1 << 23);
     b2 = b2 + (1 << 23);
@@ -119,6 +121,12 @@ i_float f_add(i_float num1, i_float num2){
     /* Einer der Werte ist NaN */
     if( (!e1 && b1) || (!e2 && b2)){
         return !0;
+    }
+    /* Überprüfe ob eine der beiden Zahlen null ist (+0/-0) */
+    if(!b1 && !e1){
+        return num2;
+    } else if (!b2 && !e2){
+        return num1;
     }
 
 
