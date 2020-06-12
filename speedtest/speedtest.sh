@@ -2,7 +2,7 @@ EXECUTABLE_FOLDER="../executables/"
 
 EXE1_NAME="integrate_fpu"
 EXE1_NICE_NAME="FPU Integration"
-EXE2_NAME="integrapte_i_float"
+EXE2_NAME="integrate_i_float"
 EXE2_NICE_NAME="Custom Float Integration"
 
 echo -e "Beginning speedtest using FPU:\n"
