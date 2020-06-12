@@ -9,7 +9,7 @@
 #define STEPS 10000
 
 // Print the results of the integration at the beginning of the function
-#define PRINT_RESULTS 1
+#define PRINT_RESULTS 0
 
 //Definitions for integrate_fpu
 #define FUNC_CONST1_FPU 15.0
