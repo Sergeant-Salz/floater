@@ -3,10 +3,10 @@
 
 #define DEBUG_PRINT 1
 
+/*
+ * Print an i_float value in formatted binary.
+ */
 void print_i_float(i_float val){
-    if(!DEBUG_PRINT){
-        return;
-    }
     i_float valCopy = val;
     for(int i = 0; i < 32; i++){
         if(i == 1 || i == 9){ printf(" ");}
@@ -16,27 +16,8 @@ void print_i_float(i_float val){
     printf("\n");
 }
 
-void print_i_float_sci(i_float val){
-    if(!DEBUG_PRINT){
-        return;
-    }
-    if(sign(val)){
-        printf("-");
-    }
-    double mantisse = 1;
-    int mant = val << 9;
-    
-    for(int i = 0; i < 23; i++){
-        if(mant & (1 << 31)){
-            mantisse += 1.0/(2 << i);
-        }
-        mant = mant << 1;
-    }
-    printf("%fe%d ", mantisse, characteristic(val) - 127);
-} 
-
 /*
- * Multipy two floating point values 
+ * Multipy two floating point values num1 and num2
  */
 i_float f_mul(i_float num1, i_float num2){
 
@@ -66,23 +47,24 @@ i_float f_mul(i_float num1, i_float num2){
     /* Neues Vorzeichen einfach durch XOR bestimmen */
     int s_sum = s1 ^ s2;
 
-
     /* Bevor wir multipizieren können müssen wir die beiden Mantissen so weit nach rechts schieben, dass
-    es keinen Überlauf geben kann. Dies hat natürlich potentiell große Präzisionsverluste zur Folge. */
+    es keinen Überlauf geben kann. Dies hat natürlich Präzisionsverluste zur Folge */
     b1 = b1 >> 8;
     b2 = b2 >> 8;
 
+    /* Wir führen die eigentliche Multiplikation durch */
     int b_sum = b1 * b2;
     
-    /* Addiere die beiden Exponenten, bedenke den bias abzuziehen da er sonst doppelt enthalten ist */
+    /* Addiere die beiden Exponenten, bedenke den bias abzuziehen da er sonst doppelt enthalten ist. */
     int e_sum = e1 + e2 - 127;
     
-    /*Dieses Ergebnis passt in allen fällen in 32 bit. Da wir zwei Zahlen mutiplizeren die eine 1 vor dem Komma stehen haben,
+    /*Dieses Ergebnis passt in allen Fällen in 32 bit. Da wir zwei Zahlen mutiplizeren die eine 1 vor dem Komma stehen haben,
     können wir sicher sein dass an der 30. (oder 31. falls overflow) stelle eine 1 stehen muss. 
-    Daher können wir das Ergebnis um eine feste menge nach rechts schieben um es wieder zu normalisieren */
+    Daher müssen wir nur zwischen overflow und nicht overflow unterscheiden, und zum normalisieren dann um eine feste
+    Menge nach rechts schieben. */
     if(b_sum & (1 << 31)){
-        /*Bedenke das hierbei führende 1-en vor alle s geschoben wird. Diese entfernen wir später wenn wir auch die führende 1 entfernen
-        Außerdem schieben wir in diesem fall 1 mal mehr als sonst, daher müssen wir den exponenten entsprechend erhöhen*/
+        /* Bedenke das der Rechtsshift führende 1en einfügt. Diese entfernen wir später wenn wir auch die führende 1 entfernen
+        Außerdem schieben wir in diesem fall 1 mal mehr als sonst, daher müssen wir den exponenten entsprechend erhöhen */
         b_sum = b_sum >> 8;
         e_sum++;
     } else {
@@ -107,22 +89,20 @@ i_float f_sub(i_float num1, i_float num2){
  * Add number one and two, returning a float.
  */
 i_float f_add(i_float num1, i_float num2){
-    /* Extrahiere die Bruchanteile der beiden Zahlen indem wir ein bitwises AND mit Hex 0x7FFFFF = 23x 1 in binär
-    durchführen */
+    /* Extrahiere die Bruchanteile der beiden Zahlen indem wir ein bitwises AND mit Hex 0x7FFFFF als Maske durchführen. */
     int b1 = num1 & 0x7FFFFF;
     int b2 = num2 & 0x7FFFFF;
 
 
-    /* Extrahiere die exponenten durch rechtsshift um 23 und bitwise AND mit
-    Hex 0xFF = 0b1111 */
+    /* Extrahiere die Exponenten durch Rechtsshift um 23 und bitwise AND mit der Maske 0xFF = 0b1111 */
     int e1 = (num1 >> 23) & 0xFF;
     int e2 = (num2 >> 23) & 0xFF;
 
-    /* Einer der Werte ist NaN */
+    /* Falls einer der Werte NaN ist, geben wir wieder NaN zurück. */
     if( (!e1 && b1) || (!e2 && b2)){
         return !0;
     }
-    /* Überprüfe ob eine der beiden Zahlen null ist (+0/-0) */
+    /* Falls einer der Summanden 0 ist (bedenke +0 und -0) so geben wir einfach den zweiten Summanden zurück */
     if(!b1 && !e1){
         return num2;
     } else if (!b2 && !e2){
@@ -134,7 +114,7 @@ i_float f_add(i_float num1, i_float num2){
     b2 = b2 + (1 << 23);
 
 
-    /* Wie merken uns das Vorzeichen (Nicht nach rechts gesiftet!)*/ 
+    /* Wie merken uns das Vorzeichen. (Nicht nach rechts gesiftet!)*/ 
     int s1 = num1 & (1 << 31);
     int s2 = num2 & (1 << 31);
 
@@ -153,15 +133,17 @@ i_float f_add(i_float num1, i_float num2){
     int e_sum = e1;
     int s_sum;
     
-    /* Wenn beide Zahlen das selbe Vorzeichen haben*/
+    /* Wir unterscheiden zwischen Fällen in denen die Vorzeichen identisch sind, und solchen wenn die Vorzeichen unterschiedlich sind.
+    Falls die Vorzeichen gleich sind können wir einfach die Summe der Mantissen bilden, und das Vorzeichen übernehmen, falls sie unterschiedlich
+    sind müssen wir eine Subtraktion ausführen, und das Vorzeichen je nach Vorzeichen dieser Subtraktion setzen. */
     if(s1 == s2) {
-        /* Das Vorzeichen des Ergebnisses ist dann das selbe wie die beiden summanden */
+        /* Das Vorzeichen des Eergebnisses ist das selbe wie das der Summanden */
         s_sum = s1;
 
         /* Wie können nun die Mantrissen einfach addieren */
         b_sum = b1 + b2;
 
-        /* Prüfen ob das Ergebnis in das 24.bit übergelaufen ist */
+        /* Prüfen ob das Ergebnis in das 24.bit übergelaufen ist, falls ja, einen ausgelichsshift durchführen */
         if(b_sum &  (1 << 24)){
             b_sum = b_sum >> 1;
             e_sum++;
@@ -174,10 +156,10 @@ i_float f_add(i_float num1, i_float num2){
         } else {
             b_sum = b1- b2;
         }
-
-        /* Nun können wir an dem 23.bit erkennen ob das ergebnis positiv oder negativ ist */
+        /* Wie im Zweierkompliment üblich erkennen wir am most significant bit ob das Ergebnis positiv oder negativ ist.
+        Bedenke dass im Falle einer Zweierkompliments-Addition mit unterschiedlichen Vorzeichen kein Überlauf passieren kann. */
         if(b_sum < 0){
-            /* Negativ, also müssen wir das 2.er kompliment bilden, potentielle overflow bits clrearen,
+            /* Negativ, also müssen wir das 2.er kompliment bilden, potentielle overflow bits clearen,
              und das Ergebnisvorzeichen auf 1 setzen */
             b_sum = -b_sum;
             b_sum = (b_sum & 0xFFFFFF);
@@ -198,6 +180,7 @@ i_float f_add(i_float num1, i_float num2){
     /* Und entfernen dann die führende 1 */
     b_sum = b_sum ^ (1<<23);
     
+    /* Und fügen dann alle Werte zu einem Ergebnis zusammen */
     int sum = s_sum | (e_sum << 23) | b_sum;
     return sum;
 }
