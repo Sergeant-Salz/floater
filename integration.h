@@ -3,10 +3,13 @@
 #define DEBUG 0
 
 //How often the integration proccess is repeated
-#define ITERATION_COUNT 1
+#define ITERATION_COUNT 1000
 
 // The number of integrations steps to be taken 
-#define STEPS 5
+#define STEPS 10000
+
+// Print the results of the integration at the beginning of the function
+#define PRINT_RESULTS 1
 
 //Definitions for integrate_fpu
 #define FUNC_CONST1_FPU 15.0

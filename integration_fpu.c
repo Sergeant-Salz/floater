@@ -21,8 +21,10 @@ float myFunc(float x){
 }
 
 int main(int argc, char** argv){
-    printf("Function at x=1 is:%f\n", myFunc(1));
-    printf("Result is:%f\n", integrate(myFunc, START_VALUE_FPU, STEPSIZE_FPU, STEPS));
+    if(PRINT_RESULTS){
+        printf("Function at x=1 is:%f\n", myFunc(1));
+        printf("Result is:%f\n", integrate(myFunc, START_VALUE_FPU, STEPSIZE_FPU, STEPS));
+    }
     for(int i = 0; i < ITERATION_COUNT; i++){
         integrate(myFunc, START_VALUE_FPU, STEPSIZE_FPU, STEPS);
     }

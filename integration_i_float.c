@@ -47,8 +47,10 @@ i_float myFunc(i_float x){
 }
 
 int main(int argc, char** argv){
-    printf("Function at x=1 is:\n"); print_i_float(myFunc(START_VALUE_I_FLOAT));
-    printf("Result is:\n"); print_i_float(integrate(myFunc, START_VALUE_I_FLOAT, STEPSIZE_I_FLOAT, STEPS));
+    if(PRINT_RESULTS){
+        printf("Function at x=1 is:\n"); print_i_float(myFunc(START_VALUE_I_FLOAT));
+        printf("Result is:\n"); print_i_float(integrate(myFunc, START_VALUE_I_FLOAT, STEPSIZE_I_FLOAT, STEPS));
+    }
     for(int i = 0; i < ITERATION_COUNT; i++){
         integrate(myFunc, START_VALUE_I_FLOAT, STEPSIZE_I_FLOAT, STEPS);
     }
