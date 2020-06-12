@@ -1,7 +1,11 @@
 
+//Print results after each step of integration
 #define DEBUG 0
 
+//How often the integration proccess is repeated
 #define ITERATION_COUNT 1
+
+// The number of integrations steps to be taken 
 #define STEPS 5
 
 //Definitions for integrate_fpu
