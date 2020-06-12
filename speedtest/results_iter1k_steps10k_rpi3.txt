@@ -1,0 +1,66 @@
+INFO:
+ ITERATION_COUNT 1000
+ STEPS 10000
+ Function = 15*x*x - 57*x
+ Run on a Raspberry Pi 3
+
+
+Beginning speedtest using FPU:
+
+----------------------------------
+
+Testing FPU Integration with -O0
+Function at x=1 is:-42.000000
+Result is:883679.562500
+
+----------------------------------
+
+Testing FPU Integration with -O1
+Function at x=1 is:-42.000000
+Result is:883679.562500
+
+----------------------------------
+
+Testing FPU Integration with -O2
+Function at x=1 is:-42.000000
+Result is:883679.562500
+
+----------------------------------
+
+Testing FPU Integration with -O3
+Function at x=1 is:-42.000000
+Result is:883679.562500
+
+Beginning speedtest using FPU:
+
+----------------------------------
+
+Testing Custom Float Integration with -O0
+Function at x=1 is:
+1 10000100 01010000000000000000000
+Result is:
+0 10010010 10101111011010001101101
+
+----------------------------------
+
+Testing Custom Float Integration with -O1
+Function at x=1 is:
+1 10000100 01010000000000000000000
+Result is:
+0 10010010 10101111011010001101101
+
+----------------------------------
+
+Testing Custom Float Integration with -O2
+Function at x=1 is:
+1 10000100 01010000000000000000000
+Result is:
+0 10010000 11001111011111111110001
+
+----------------------------------
+
+Testing Custom Float Integration with -O3
+Function at x=1 is:
+1 10000100 01010000000000000000000
+Result is:
+0 10010000 11001111011111111110001
