@@ -19,7 +19,8 @@ echo -e "\n----------------------------------"
 echo -e "\nTesting "$EXE1_NICE_NAME" with -O3"
 time $EXECUTABLE_FOLDER$EXE1_NAME"_O3"
 
-echo -e "\nBeginning speedtest using FPU:\n"
+echo "#####################################"
+echo -e "\nBeginning speedtest using softfloat:\n"
 echo -e "----------------------------------\n"
 echo "Testing "$EXE2_NICE_NAME" with -O0"
 time $EXECUTABLE_FOLDER$EXE2_NAME
