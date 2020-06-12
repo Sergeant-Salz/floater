@@ -18,15 +18,15 @@ i_float integrate(i_float (*function)(i_float), i_float start, i_float stepSize,
                     function(
                         f_add(start, 
                             f_mul(
-                                f_add(step_f, ONE),
+                                f_add(step_f, ONE_I_FLOAT),
                                 stepSize)
                             )
                         ),
-                    ONE_HALF
+                    ONE_HALF_I_FLOAT
                     )
                 )
         );
-        step_f = f_add(step_f, ONE);
+        step_f = f_add(step_f, ONE_I_FLOAT);
     }
 
     return f_mul(sum, stepSize);
@@ -40,16 +40,16 @@ i_float myFunc(i_float x){
     //15*x*x - 57*x
     return f_sub(
         f_mul(
-            f_mul(FUNC_CONST1,x), 
+            f_mul(FUNC_CONST1_I_FLOAT,x), 
             x),
-        f_mul(FUNC_CONST2, x)
+        f_mul(FUNC_CONST2_I_FLOAT, x)
         );
 }
 
 int main(int argc, char** argv){
-    printf("Function at x=1 is:\n"); print_i_float(myFunc(START_VALUE));
-    printf("Result is:\n"); print_i_float(integrate(myFunc, START_VALUE, STEPSIZE, STEPS));
+    printf("Function at x=1 is:\n"); print_i_float(myFunc(START_VALUE_I_FLOAT));
+    printf("Result is:\n"); print_i_float(integrate(myFunc, START_VALUE_I_FLOAT, STEPSIZE_I_FLOAT, STEPS));
     for(int i = 0; i < ITERATION_COUNT; i++){
-        //integrate(myFunc, START_VALUE, STEPSIZE, STEPS);
+        integrate(myFunc, START_VALUE_I_FLOAT, STEPSIZE_I_FLOAT, STEPS);
     }
 }

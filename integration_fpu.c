@@ -17,13 +17,13 @@ float quadratic(float x){
 }
 
 float myFunc(float x){
-    return 15*x*x - 57*x;
+    return FUNC_CONST1_FPU*x*x - FUNC_CONST2_FPU*x;
 }
 
 int main(int argc, char** argv){
     printf("Function at x=1 is:%f\n", myFunc(1));
-    printf("Result is:%f\n", integrate(myFunc, 1, 0.005, STEPS));
+    printf("Result is:%f\n", integrate(myFunc, START_VALUE_FPU, STEPSIZE_FPU, STEPS));
     for(int i = 0; i < ITERATION_COUNT; i++){
-        integrate(myFunc, 1, 0.005, STEPS);
+        integrate(myFunc, START_VALUE_FPU, STEPSIZE_FPU, STEPS);
     }
 }
