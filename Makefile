@@ -1,3 +1,5 @@
+_createfolder := $(shell mkdir -p executables)
+
 all: integrate_fpu integrate_i_float
 full: integrate_fpu_full integrate_i_float_full
 
